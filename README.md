@@ -8,7 +8,7 @@ A quick install guide & scripts for installing FusionPBX. It is recommended to s
 Debian 9 is the preferred operating system by the FreeSWITCH developers. It supports the latest video dependencies and should be used if you want to do video mixing. Download Debian 9 Stretch at https://cdimage.debian.org/cdimage/release/current/
 
 ```sh
-wget -O - https://raw.githubusercontent.com/fusionpbx/fusionpbx-install.sh/master/debian/pre-install.sh | sh;
+wget -O - https://raw.githubusercontent.com/ziondials/fusionpbx-install.sh/master/debian/pre-install.sh | sh;
 cd /usr/src/fusionpbx-install.sh/debian && ./install.sh
 ```
 ### Devuan
@@ -17,7 +17,7 @@ Devuan ASCII is based on Stretch, so you will find most of the same packages ava
 Please note that the source installation and installation on ARM is not fully tested.
 
 ```sh
-wget -O - https://raw.githubusercontent.com/fusionpbx/fusionpbx-install.sh/master/devuan/pre-install.sh | sh;
+wget -O - https://raw.githubusercontent.com/ziondials/fusionpbx-install.sh/master/devuan/pre-install.sh | sh;
 cd /usr/src/fusionpbx-install.sh/devuan && ./install.sh
 ```
 
@@ -26,7 +26,7 @@ FreeBSD is an operating system that has many great features like ZFS, HAST, CARP
 
 ```sh
 pkg install --yes git
-cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git
+cd /usr/src && git clone https://github.com/ziondials/fusionpbx-install.sh.git
 cd /usr/src/fusionpbx-install.sh/freebsd/
 ./install.sh
 ```
@@ -35,7 +35,7 @@ cd /usr/src/fusionpbx-install.sh/freebsd/
 CentOS operating system is a requirement for some companies. Don't expect video mixing to work. It will likely be a year or more for video mixing dependencies to be updated enough to work in CentOS.
 
 ```sh
-wget -O - https://raw.githubusercontent.com/fusionpbx/fusionpbx-install.sh/master/centos/pre-install.sh | sh
+wget -O - https://raw.githubusercontent.com/ziondials/fusionpbx-install.sh/master/centos/pre-install.sh | sh
 cd /usr/src/fusionpbx-install.sh/centos && ./install.sh
 ```
 
@@ -50,7 +50,7 @@ cd /usr/src/fusionpbx-install.sh/centos && ./install.sh
 
 ```sh
 
-Master https://github.com/fusionpbx/fusionpbx-install.sh/archive/master.zip
+Master https://github.com/ziondials/fusionpbx-install.sh/archive/master.zip
 ```
 
 ## Security Considerations
