@@ -1,6 +1,6 @@
 
 # FusionPBX Settings
-domain_name=hostname            # hostname, ip_address or a custom value
+domain_name=ip_address          # hostname, ip_address or a custom value
 system_username=admin           # default username admin
 system_password=random          # random or a custom value
 system_branch=master            # master, stable
@@ -17,8 +17,8 @@ sofia_version=1.13.6            # release-version for sofia-sip to use
 
 # Database Settings
 database_password=random        # random or a custom value (safe characters A-Z, a-z, 0-9)
-database_repo=2ndquadrant       # PostgreSQL official, system, 2ndquadrant
-database_version=9.4         # requires repo official
+database_repo=official          # PostgreSQL official, system, 2ndquadrant
+database_version=latest         # requires repo official
 database_host=127.0.0.1         # hostname or IP address
 database_port=5432              # port number
 database_backup=false           # true or false
