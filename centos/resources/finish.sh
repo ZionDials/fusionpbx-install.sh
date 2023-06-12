@@ -22,13 +22,12 @@ export PGPASSWORD=$database_password
 sudo -u postgres /usr/bin/psql -c "ALTER USER fusionpbx WITH PASSWORD '$database_password';"
 sudo -u postgres /usr/bin/psql -c "ALTER USER freeswitch WITH PASSWORD '$database_password';"
 
-#add the config.php
-mkdir -p /etc/fusionpbx
-chown -R freeswitch:daemon /etc/fusionpbx
-cp fusionpbx/config.php /etc/fusionpbx
-sed -i /etc/fusionpbx/config.php -e s:"{database_host}:$database_host:"
-sed -i /etc/fusionpbx/config.php -e s:'{database_username}:fusionpbx:'
-sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$database_password:"
+#add the config.conf
+cp fusionpbx/config.conf /etc/fusionpbx
+sed -i /etc/fusionpbx/config.conf -e s:"{database_host}:$database_host:"
+sed -i /etc/fusionpbx/config.conf -e s:"{database_name}:$database_name:"
+sed -i /etc/fusionpbx/config.conf -e s:"{database_username}:$database_username:"
+sed -i /etc/fusionpbx/config.conf -e s:"{database_password}:$database_password:"
 
 #add the database schema
 cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php > /dev/null 2>&1
@@ -67,11 +66,8 @@ group_uuid=$(echo $group_uuid | sed 's/^[[:blank:]]*//;s/[[:blank:]]*$//')
 #add the user to the group
 user_group_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 group_name=superadmin
-if [ .$system_branch = .'master' ]; then
-	psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_user_groups (user_group_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
-else
-	psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_group_users (group_user_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
-fi
+psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_user_groups (user_group_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
+
 #update the php configuration
 sed -i 's/user nginx/user freeswitch daemon/g' /etc/nginx/nginx.conf
 chown -Rf freeswitch:daemon /var/lib/nginx

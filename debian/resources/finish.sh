@@ -30,13 +30,13 @@ chmod 755 /etc/cron.daily/fusionpbx-maintenance
 sed -i "s/zzz/$database_password/g" /etc/cron.daily/fusionpbx-backup
 sed -i "s/zzz/$database_password/g" /etc/cron.daily/fusionpbx-maintenance
 
-#add the config.php
+#add the config.conf
 mkdir -p /etc/fusionpbx
-chown -R www-data:www-data /etc/fusionpbx
-cp fusionpbx/config.php /etc/fusionpbx
-sed -i /etc/fusionpbx/config.php -e s:"{database_host}:$database_host:"
-sed -i /etc/fusionpbx/config.php -e s:'{database_username}:fusionpbx:'
-sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$database_password:"
+cp fusionpbx/config.conf /etc/fusionpbx
+sed -i /etc/fusionpbx/config.conf -e s:"{database_host}:$database_host:"
+sed -i /etc/fusionpbx/config.conf -e s:"{database_name}:$database_name:"
+sed -i /etc/fusionpbx/config.conf -e s:"{database_username}:$database_username:"
+sed -i /etc/fusionpbx/config.conf -e s:"{database_password}:$database_password:"
 
 #add the database schema
 cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php > /dev/null 2>&1
@@ -58,7 +58,7 @@ domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_domains (domain_uuid, domain_name, domain_enabled) values('$domain_uuid', '$domain_name', 'true');"
 
 #app defaults
-cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
+cd /var/www/fusionpbx && /usr/bin/php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
 
 #add the user
 user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
@@ -69,7 +69,7 @@ if [ .$system_password = .'random' ]; then
 else
 	user_password=$system_password
 fi
-password_hash=$(php -r "echo md5('$user_salt$user_password');");
+password_hash=$(/usr/bin/php -r "echo md5('$user_salt$user_password');");
 psql --host=$database_host --port=$database_port --username=$database_username -t -c "insert into v_users (user_uuid, domain_uuid, username, password, salt, user_enabled) values('$user_uuid', '$domain_uuid', '$user_name', '$password_hash', '$user_salt', 'true');"
 
 #get the superadmin group_uuid
@@ -79,12 +79,9 @@ group_uuid=$(psql --host=$database_host --port=$database_port --username=$databa
 #add the user to the group
 user_group_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 group_name=superadmin
-if [ .$system_branch = .'master' ]; then
-	#echo "insert into v_user_groups (user_group_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
-	psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_user_groups (user_group_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
-else
-	psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_group_users (group_user_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
-fi
+#echo "insert into v_user_groups (user_group_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
+psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_user_groups (user_group_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$user_group_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
+
 #update xml_cdr url, user and password
 xml_cdr_username=$(dd if=/dev/urandom bs=1 count=20 2>/dev/null | base64 | sed 's/[=\+//]//g')
 xml_cdr_password=$(dd if=/dev/urandom bs=1 count=20 2>/dev/null | base64 | sed 's/[=\+//]//g')
@@ -95,11 +92,23 @@ sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_user}:$xml_cdr
 sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_pass}:$xml_cdr_password:"
 
 #app defaults
-cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade.php
+cd /var/www/fusionpbx && /usr/bin/php /var/www/fusionpbx/core/upgrade/upgrade.php
 
 #restart freeswitch
 /bin/systemctl daemon-reload
 /bin/systemctl restart freeswitch
+
+#install the email_queue service
+cp /var/www/fusionpbx/app/email_queue/resources/service/debian.service /etc/systemd/system/email_queue.service
+systemctl enable email_queue
+systemctl start email_queue
+systemctl daemon-reload
+
+#install the event_guard service
+cp /var/www/fusionpbx/app/event_guard/resources/service/debian.service /etc/systemd/system/event_guard.service
+/bin/systemctl enable event_guard
+/bin/systemctl start event_guard
+/bin/systemctl daemon-reload
 
 #welcome message
 echo ""
